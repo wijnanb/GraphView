@@ -21,8 +21,11 @@ package com.jjoe64.graphview.series;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Interpolator;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.TranslateAnimation;
 
 import com.jjoe64.graphview.GraphView;
 
@@ -36,6 +39,10 @@ import java.util.Iterator;
  * @author jjoe64
  */
 public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E> {
+    public void translateAnimation() {
+
+    }
+
     /**
      * wrapped styles regarding the line
      */
@@ -292,17 +299,10 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
         }
 
 
-        // Draw lines and points
-
+        // Draw lines
         for (int i = 0; i < points.size(); i++) {
 
             Point point = points.get(i);
-
-            // draw data point
-            if (mStyles.drawDataPoints) {
-                canvas.drawCircle(point.x, point.y, mStyles.dataPointsRadius, mPaint);
-            }
-
             mPath.reset();
 
             if (i < points.size() - 1) {
@@ -344,6 +344,13 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
 
                 canvas.drawPath(mPath, paint);
 
+            }
+        }
+
+        // draw data points
+        if (mStyles.drawDataPoints) {
+            for (Point point : points) {
+                canvas.drawCircle(point.x, point.y, mStyles.dataPointsRadius, mPaint);
             }
         }
     }
