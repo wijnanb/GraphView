@@ -395,6 +395,24 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
     }
 
     /**
+     * whether the line is drawn with a bezier curve or a straight line
+     *
+     * @return whether the line is drawn with a bezier curve or a straight line
+     */
+    public boolean isSmooth() {
+        return mStyles.smooth;
+    }
+
+    /**
+     * whether the line is drawn with a bezier curve or a straight line
+     *
+     * @param smooth flag whether the line is drawn with a bezier curve or a straight line
+     */
+    public void setSmooth(boolean smooth) {
+        mStyles.smooth = smooth;
+    }
+
+    /**
      * flag whether the data points are highlighted as
      * a visible point.
      *
