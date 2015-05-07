@@ -26,6 +26,7 @@ import android.graphics.Path;
 
 import com.jjoe64.graphview.GraphView;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -146,8 +147,8 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
      * plots the series
      * draws the line and the background
      *
-     * @param graphView graphview
-     * @param canvas canvas
+     * @param graphView     graphview
+     * @param canvas        canvas
      * @param isSecondScale flag if it is the second scale
      */
     @Override
@@ -202,7 +203,10 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
         lastEndX = 0;
         double lastUsedEndX = 0;
         float firstX = 0;
-        int i=0;
+        int i = 0;
+
+        ArrayList<Point> points = new ArrayList<>();
+
         while (values.hasNext()) {
             E value = values.next();
 
@@ -220,33 +224,33 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
             if (i > 0) {
                 // overdraw
                 if (x > graphWidth) { // end right
-                    double b = ((graphWidth - lastEndX) * (y - lastEndY)/(x - lastEndX));
-                    y = lastEndY+b;
+                    double b = ((graphWidth - lastEndX) * (y - lastEndY) / (x - lastEndX));
+                    y = lastEndY + b;
                     x = graphWidth;
                 }
                 if (y < 0) { // end bottom
-                    double b = ((0 - lastEndY) * (x - lastEndX)/(y - lastEndY));
-                    x = lastEndX+b;
+                    double b = ((0 - lastEndY) * (x - lastEndX) / (y - lastEndY));
+                    x = lastEndX + b;
                     y = 0;
                 }
                 if (y > graphHeight) { // end top
-                    double b = ((graphHeight - lastEndY) * (x - lastEndX)/(y - lastEndY));
-                    x = lastEndX+b;
+                    double b = ((graphHeight - lastEndY) * (x - lastEndX) / (y - lastEndY));
+                    x = lastEndX + b;
                     y = graphHeight;
                 }
                 if (lastEndY < 0) { // start bottom
-                    double b = ((0 - y) * (x - lastEndX)/(lastEndY - y));
-                    lastEndX = x-b;
+                    double b = ((0 - y) * (x - lastEndX) / (lastEndY - y));
+                    lastEndX = x - b;
                     lastEndY = 0;
                 }
                 if (lastEndX < 0) { // start left
-                    double b = ((0 - x) * (y - lastEndY)/(lastEndX - x));
-                    lastEndY = y-b;
+                    double b = ((0 - x) * (y - lastEndY) / (lastEndX - x));
+                    lastEndY = y - b;
                     lastEndX = 0;
                 }
                 if (lastEndY > graphHeight) { // start top
-                    double b = ((graphHeight - y) * (x - lastEndX)/(lastEndY - y));
-                    lastEndX = x-b;
+                    double b = ((graphHeight - y) * (x - lastEndX) / (lastEndY - y));
+                    lastEndX = x - b;
                     lastEndY = graphHeight;
                 }
 
@@ -255,29 +259,18 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
                 float endX = (float) x + (graphLeft + 1);
                 float endY = (float) (graphTop - y) + graphHeight;
 
-                // draw data point
-                if (mStyles.drawDataPoints) {
-                    //fix: last value was not drawn. Draw here now the end values
-                    canvas.drawCircle(endX, endY, mStyles.dataPointsRadius, mPaint);
-                }
+                points.add(new Point(endX, endY));
                 registerDataPoint(endX, endY, value);
 
-                mPath.reset();
-                mPath.moveTo(startX, startY);
-                mPath.lineTo(endX, endY);
-                canvas.drawPath(mPath, paint);
-                if (mStyles.drawBackground) {
-                    if (i==1) {
-                        firstX = startX;
-                        mPathBackground.moveTo(startX, startY);
-                    }
-                    mPathBackground.lineTo(endX, endY);
-                }
                 lastUsedEndX = endX;
             } else if (mStyles.drawDataPoints) {
                 //fix: last value not drawn as datapoint. Draw first point here, and then on every step the end values (above)
                 float first_X = (float) x + (graphLeft + 1);
                 float first_Y = (float) (graphTop - y) + graphHeight;
+
+                points.add(new Point(first_X, first_Y));
+                registerDataPoint(first_X, first_Y, value);
+
                 //TODO canvas.drawCircle(first_X, first_Y, dataPointsRadius, mPaint);
             }
             lastEndY = orgY;
@@ -293,6 +286,34 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
             canvas.drawPath(mPathBackground, mPaintBackground);
         }
 
+
+        // Draw lines between points
+        
+        for (int index = 0; index < points.size(); index++) {
+
+            Point point = points.get(index);
+
+            // draw data point
+            if (mStyles.drawDataPoints) {
+                //fix: last value was not drawn. Draw here now the end values
+                canvas.drawCircle(point.x, point.y, mStyles.dataPointsRadius, mPaint);
+            }
+
+            mPath.reset();
+
+            if (index > 0) {
+                Point prevPoint = points.get(index-1);
+
+                mPath.moveTo(prevPoint.x, prevPoint.y);
+                mPath.lineTo(point.x, point.y);
+                canvas.drawPath(mPath, paint);
+
+                if (mStyles.drawBackground) {
+                    mPathBackground.moveTo(prevPoint.x, prevPoint.y);
+                    mPathBackground.lineTo(point.x, point.y);
+                }
+            }
+        }
     }
 
     /**
@@ -380,8 +401,8 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
     }
 
     /**
-     * @return  the background color for the filling under
-     *          the line.
+     * @return the background color for the filling under
+     * the line.
      * @see #setDrawBackground(boolean)
      */
     public int getBackgroundColor() {
@@ -389,8 +410,8 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
     }
 
     /**
-     * @param backgroundColor  the background color for the filling under
-     *                          the line.
+     * @param backgroundColor the background color for the filling under
+     *                        the line.
      * @see #setDrawBackground(boolean)
      */
     public void setBackgroundColor(int backgroundColor) {
@@ -405,5 +426,15 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
      */
     public void setCustomPaint(Paint customPaint) {
         this.mCustomPaint = customPaint;
+    }
+
+    class Point {
+        public float x;
+        public float y;
+
+        public Point(float x, float y) {
+            this.x = x;
+            this.y = y;
+        }
     }
 }
