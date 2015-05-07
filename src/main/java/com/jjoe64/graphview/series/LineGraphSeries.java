@@ -78,6 +78,11 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
          * @see #drawBackground
          */
         private int backgroundColor = Color.argb(100, 172, 218, 255);
+
+        /**
+         * Draw line like a bezier curve to create a smooth line
+         */
+        private boolean smooth = false;
     }
 
     /**
@@ -203,7 +208,7 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
         lastEndX = 0;
         double lastUsedEndX = 0;
         float firstX = 0;
-        int i = 0;
+        int cnt = 0;
 
         ArrayList<Point> points = new ArrayList<>();
 
@@ -221,7 +226,7 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
             double orgX = x;
             double orgY = y;
 
-            if (i > 0) {
+            if (cnt > 0) {
                 // overdraw
                 if (x > graphWidth) { // end right
                     double b = ((graphWidth - lastEndX) * (y - lastEndY) / (x - lastEndX));
@@ -275,7 +280,7 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
             }
             lastEndY = orgY;
             lastEndX = orgX;
-            i++;
+            cnt++;
         }
 
         if (mStyles.drawBackground) {
@@ -287,31 +292,58 @@ public class LineGraphSeries<E extends DataPointInterface> extends BaseSeries<E>
         }
 
 
-        // Draw lines between points
-        
-        for (int index = 0; index < points.size(); index++) {
+        // Draw lines and points
 
-            Point point = points.get(index);
+        for (int i = 0; i < points.size(); i++) {
+
+            Point point = points.get(i);
 
             // draw data point
             if (mStyles.drawDataPoints) {
-                //fix: last value was not drawn. Draw here now the end values
                 canvas.drawCircle(point.x, point.y, mStyles.dataPointsRadius, mPaint);
             }
 
             mPath.reset();
 
-            if (index > 0) {
-                Point prevPoint = points.get(index-1);
+            if (i < points.size() - 1) {
 
-                mPath.moveTo(prevPoint.x, prevPoint.y);
-                mPath.lineTo(point.x, point.y);
+                Point nextPoint = points.get(i + 1);
+
+                if (mStyles.smooth) {
+                    Point prevPoint = i > 0 ? points.get(i - 1) : point;
+                    Point nextNextPoint = i < points.size() - 2 ? points.get(i + 2) : nextPoint;
+
+                    float startdiffX = nextPoint.x - prevPoint.x;
+                    float startdiffY = nextPoint.y - prevPoint.y;
+
+                    float endDiffX = nextNextPoint.x - point.x;
+                    float endDiffY = nextNextPoint.y - point.y;
+
+                    float firstControlX = point.x + (0.15f * startdiffX);
+                    float firstControlY = point.y + (0.15f * startdiffY);
+
+                    float secondControlX = nextPoint.x - (0.15f * endDiffX);
+                    float secondControlY = nextPoint.y - (0.15f * endDiffY);
+
+                    mPath.moveTo(point.x, point.y);
+                    mPath.cubicTo(firstControlX, firstControlY, secondControlX, secondControlY, nextPoint.x, nextPoint.y);
+
+                    if (mStyles.drawBackground) {
+                        mPathBackground.moveTo(point.x, point.y);
+                        mPathBackground.cubicTo(firstControlX, firstControlY, secondControlX, secondControlY, nextPoint.x, nextPoint.y);
+                    }
+                } else {
+                    mPath.moveTo(point.x, point.y);
+                    mPath.lineTo(nextPoint.x, nextPoint.y);
+
+                    if (mStyles.drawBackground) {
+                        mPathBackground.moveTo(point.x, point.y);
+                        mPathBackground.lineTo(nextPoint.x, nextPoint.y);
+                    }
+                }
+
                 canvas.drawPath(mPath, paint);
 
-                if (mStyles.drawBackground) {
-                    mPathBackground.moveTo(prevPoint.x, prevPoint.y);
-                    mPathBackground.lineTo(point.x, point.y);
-                }
             }
         }
     }
