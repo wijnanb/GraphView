@@ -297,6 +297,13 @@ public class Viewport {
     protected RectF mCurrentViewport = new RectF();
 
     /**
+     * this holds the forced visible viewport
+     * left = minX, right = maxX
+     * bottom = minY, top = maxY
+     */
+    protected RectF mForcedViewport = null;
+
+    /**
      * this holds the whole range of the data
      * left = minX, right = maxX
      * bottom = minY, top = maxY
@@ -582,6 +589,10 @@ public class Viewport {
 
             mCurrentViewport.bottom = (float) d;
 
+            if (mForcedViewport != null) {
+                mCurrentViewport.bottom = Math.min(mCurrentViewport.bottom, mForcedViewport.bottom);
+            }
+
             // highest
             d = Double.MIN_VALUE;
             for (Series s : series) {
@@ -593,7 +604,12 @@ public class Viewport {
                     }
                 }
             }
+
             mCurrentViewport.top = (float) d;
+
+            if (mForcedViewport != null) {
+                mCurrentViewport.top = Math.max(mCurrentViewport.top, mForcedViewport.top);
+            }
         }
 
         // fixes blank screen when range is zero
@@ -664,6 +680,19 @@ public class Viewport {
     }
 
     /**
+     * Force the maximal y value for the current viewport.
+     * Even if the y bounds are set to manual via
+     * {@link #setYAxisBoundsManual(boolean)}
+     * @param y max / highest value
+     */
+    public void forceMaxY(double y) {
+        if (mForcedViewport == null) {
+            mForcedViewport = new RectF();
+        }
+        mForcedViewport.top = (float) y;
+    }
+
+    /**
      * set the minimal y value for the current viewport.
      * Make sure to set the y bounds to manual via
      * {@link #setYAxisBoundsManual(boolean)}
@@ -671,6 +700,19 @@ public class Viewport {
      */
     public void setMinY(double y) {
         mCurrentViewport.bottom = (float) y;
+    }
+
+    /**
+     * Force the minimal y value for the current viewport.
+     * Even if the y bounds are set to manual via
+     * {@link #setYAxisBoundsManual(boolean)}
+     * @param y min / lowest value
+     */
+    public void forceMinY(double y) {
+        if (mForcedViewport == null) {
+            mForcedViewport = new RectF();
+        }
+        mForcedViewport.bottom = (float) y;
     }
 
     /**
