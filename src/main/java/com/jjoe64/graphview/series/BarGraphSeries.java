@@ -180,6 +180,7 @@ public class BarGraphSeries<E extends DataPointInterface> extends BaseSeries<E> 
 
         int numBarSlots = (minGap == 0) ? 1 : (int)Math.round((maxX - minX)/minGap) + 1;
 
+
         Iterator<E> values = getValues(minX, maxX);
 
         // Calculate the overall bar slot width - this includes all bars across
@@ -187,7 +188,6 @@ public class BarGraphSeries<E extends DataPointInterface> extends BaseSeries<E> 
         float barSlotWidth = numBarSlots == 1
             ? graphView.getGraphContentWidth()
             : graphView.getGraphContentWidth() / (numBarSlots-1);
-        Log.d("BarGraphSeries", "numBars=" + numBarSlots);
 
         // Total spacing (both sides) between sets of bars
         float spacing = Math.min((float) barSlotWidth*mSpacing/100, barSlotWidth*0.98f);
