@@ -745,7 +745,7 @@ public class GridLabelRenderer {
      */
     protected void calcLabelVerticalSize(Canvas canvas) {
         // test label with first and last label
-        String testLabel = mLabelFormatter.formatLabel(mGraphView.getViewport().getMaxY(false), false);
+        String testLabel = mLabelFormatter.formatLabel(100000, false);
         if (testLabel == null) testLabel = "";
 
         Rect textBounds = new Rect();
@@ -753,7 +753,7 @@ public class GridLabelRenderer {
         mLabelVerticalWidth = textBounds.width();
         mLabelVerticalHeight = textBounds.height();
 
-        testLabel = mLabelFormatter.formatLabel(mGraphView.getViewport().getMinY(false), false);
+        testLabel = mLabelFormatter.formatLabel(0, false);
         if (testLabel == null) testLabel = "";
 
         mPaintLabel.getTextBounds(testLabel, 0, testLabel.length(), textBounds);
