@@ -180,7 +180,7 @@ public abstract class BaseSeries<E extends DataPointInterface> implements Series
                     if (org.hasNext()) {
                         prevValue = org.next();
                     }
-                    if (prevValue.getX() >= from) {
+                    if (prevValue != null && prevValue.getX() >= from) {
                         nextValue = prevValue;
                         found = true;
                     } else {
